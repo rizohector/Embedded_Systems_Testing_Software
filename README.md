@@ -1,4 +1,25 @@
 # Embedded_Systems_Testing_Software
+
+TP Nº 04 del curso de posgrado de TSSE
+“Sistema de monitoreo y control de bancos de acumulación eléctricas (SMCBAE)”
+
+Se realizará las siguientes pruebas de testing de software por el método TDD con casos de prueba incluidos para el proyecto  SMCBAE perteneciente al proyecto final de la Especialización en Sistemas embebidos  del Ing. Héctor RIZO (a partir de ahora el SMCBAE será llamado en todo momento “sistema”).
+
+    • El sistema debe inicializar encendido para la realización de las pruebas ya ademas debe inicializar con las variables (campos) en 0.
+      
+      
+    • Sistema de control mide la temperatura en el acumulador y saca de servicio al sistema cuando supere los 60ºC. El sensor de temperatura genera dato valido entre -10 a 80 C.
+      
+    • Sistema de control mide la humedad en el acumulador y saca de servicio al sistema cuando sea inferior al 90ºC. El sensor de humedad genera dato valido entre 0% a 100%.
+      
+    • Sistema de control mide la tensión en el acumulador y saca de servicio al sistema cuando sea superior a 14 V. Se medirá entre un rango de 0 V a 15 V.
+      
+    • Sistema de control mide la corriente eléctrica en el acumulador y saca de servicio al sistema cuando sea superior a 100 A.  Se medirá entre un rango de 0 A a 120 A.
+
+
+
+
+TP Nº03 del curso de posgrado TSSE
 Driver de LEDs: Requisitos
 • Maneja 16 leds de dos estados (encendido y apagado).
 • Se puede cambiar el estado de un led sin afectar a los otros.
