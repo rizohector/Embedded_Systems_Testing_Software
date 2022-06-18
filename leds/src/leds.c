@@ -5,7 +5,6 @@
 #define BIT_MASK           1
 #define LEDS_ALL_OFF       0x0000
 #define LEDS_ALL_ON        0xFFFF
-#define LSB                1
 #define LED_OFF            0
 #define LED_ON             1
 
@@ -67,7 +66,7 @@ void LedsAllOn(void)
 
 bool LedState(uint8_t led)
 {
-    if(*puerto == (LSB << (led-LED_TO_BIT_OFFSET)))
+    if(*puerto == (BIT_MASK  << (led-LED_TO_BIT_OFFSET)))
     {
         return LED_ON;
     }
