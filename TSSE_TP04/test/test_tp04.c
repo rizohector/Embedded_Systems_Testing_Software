@@ -1,6 +1,6 @@
 #include "unity.h"
 #include "tp04.h"
-//#include "errores.h"
+#include "mock_hardware.h"
 
 /* MAX_TEMP_ACCUM     60  // MAXIMA TEMPERATURA PERMITIDA EN EL ACUMULADOR (en grados centigrados)
    MAX_HUM_ACCUM      90  // MINIMA HUMEDAD PERMITIDA EN EL ACUMULADOR (en porcentaje)
@@ -11,102 +11,6 @@
 */
 
 actualMeasurement_t actMeasurement;
-
-#define TEST_CASE_X ( 0 ) // SE ELIJE EL CASO DE PRUEBA DESEADO DEL 0 AL 7 QUE MAS ABAJO SE DETALLA
-
-void UploadTestCase (int testCase)
-{
-	switch (testCase)
-	{
-		case 0:
-			/* Valores de casos de prueba por sobretemperatura */
-			{
-			actMeasurement.actualTemperature=61;   // TEMPERATURA DE PRUEBA
-			actMeasurement.actualHumidity=95;      // HUMEDAD DE PRUEBA
-			actMeasurement.actualVoltage=13.5;     // TENSIÓN DE PRUEBA
-			actMeasurement.actualCurrent=45;       // CORRIENTE DE PRUEBA
-			actMeasurement.stateSystem=STATE_ON;   // ESTADO DEL SISTEMA ENCENDIDO
-			}
-			break;
-
-		case 1:
-			/* Valores de casos de prueba por baja humedad*/
-			{
-			actMeasurement.actualTemperature=42;   // TEMPERATURA DE PRUEBA
-    		actMeasurement.actualHumidity=85;      // HUMEDAD DE PRUEBA
-   			actMeasurement.actualVoltage=12.3;     // TENSIÓN DE PRUEBA
-   			actMeasurement.actualCurrent=16;       // CORRIENTE DE PRUEBA
-			actMeasurement.stateSystem=STATE_ON;   // ESTADO DEL SISTEMA ENCENDIDO
-			}
-			break;
-
-		case 2:
-			{
-			/* Valores de casos de prueba por sobretensión*/
-			actMeasurement.actualTemperature=52;   // TEMPERATURA DE PRUEBA
-    		actMeasurement.actualHumidity=98;      // HUMEDAD DE PRUEBA
-    		actMeasurement.actualVoltage=14.1;     // TENSIÓN DE PRUEBA
-    		actMeasurement.actualCurrent=1.4;      // CORRIENTE DE PRUEBA
-			actMeasurement.stateSystem=STATE_ON;   // ESTADO DEL SISTEMA ENCENDIDO
-			}
-			break;
-
-		case 3:
-			{
-			/* Valores de casos de prueba con sobrecorriente */
-			actMeasurement.actualTemperature=49;   // TEMPERATURA DE PRUEBA
-    		actMeasurement.actualHumidity=91;      // HUMEDAD DE PRUEBA
-    		actMeasurement.actualVoltage=8;        // TENSIÓN DE PRUEBA
-    		actMeasurement.actualCurrent=100.1;    // CORRIENTE DE PRUEBA
-			actMeasurement.stateSystem=STATE_ON;   // ESTADO DEL SISTEMA ENCENDIDO
-			}
-			break;
-
-		case 4:
-			{
-			/* Valores de casos de prueba con dos casos eventos fuera de limites*/
-			actMeasurement.actualTemperature=60.4;   // TEMPERATURA DE PRUEBA
-    		actMeasurement.actualHumidity=92;        // HUMEDAD DE PRUEBA
-    		actMeasurement.actualVoltage=14.1;       // TENSIÓN DE PRUEBA
-    		actMeasurement.actualCurrent=2.5;        // CORRIENTE DE PRUEBA
-			actMeasurement.stateSystem=STATE_ON;     // ESTADO DEL SISTEMA ENCENDIDO
-			}
-			break;
-
-		case 5:
-			{
-			// Valores de casos de prueba con tres eventos fuera de limite //
-			actMeasurement.actualTemperature=59;     // TEMPERATURA DE PRUEBA
-    		actMeasurement.actualHumidity=84.1;      // HUMEDAD DE PRUEBA
-    		actMeasurement.actualVoltage=14.1;       // TENSIÓN DE PRUEBA
-    		actMeasurement.actualCurrent=100.1;      // CORRIENTE DE PRUEBA
-			actMeasurement.stateSystem=STATE_ON;     // ESTADO DEL SISTEMA ENCENDIDO
-			}
-			break;
-
-		case 6:
-			{
-			// Valores de casos de prueba con cuatro eventos fuera de limite//
-			actMeasurement.actualTemperature=60.1;   // TEMPERATURA DE PRUEBA
-    		actMeasurement.actualHumidity=53.8;      // HUMEDAD DE PRUEBA
-    		actMeasurement.actualVoltage=14.1;       // TENSIÓN DE PRUEBA
-    		actMeasurement.actualCurrent=100.1;      // CORRIENTE DE PRUEBA
-			actMeasurement.stateSystem=STATE_ON;     // ESTADO DEL SISTEMA ENCENDIDO
-			}
-			break;
-
-		case 7:
-			{
-			// Valores de casos de prueba con eventos dentro de los limites//
-			actMeasurement.actualTemperature=47.2;   // TEMPERATURA DE PRUEBA
-    		actMeasurement.actualHumidity=98.3;      // HUMEDAD DE PRUEBA
-    		actMeasurement.actualVoltage=12.5;       // TENSIÓN DE PRUEBA
-    		actMeasurement.actualCurrent=15;         // CORRIENTE DE PRUEBA
-			actMeasurement.stateSystem=STATE_ON;     // ESTADO DEL SISTEMA ENCENDIDO
-			}
-			break;
-	}
-}
 
 // El sistema debe inicializar encendido para la realización de las pruebas.
 // El sistema debe inicializar con las variables en 0.
@@ -122,49 +26,103 @@ void test_SystemInit (void)
 }
 
 // Sistema de control mide la temperatura en el acumulador y saca de servicio el SMCBAE cuando supere los 60ºC.
+// La prueba se realizará con una temperatura de 61.
 // El sensor de temperatura genera dato valido entre -10 a 80 C.
 void test_MaxTempAccum (void)
 {
-	UploadTestCase (TEST_CASE_X);
+	actMeasurement.stateSystem=STATE_ON;	//Recordar que el sistema debe estar encendido para las pruebas.
+	getADC_value_ExpectAndReturn(61);
+	actMeasurement.actualTemperature= (float)Read_Value();
+	TEST_ASSERT_EQUAL(ACTIVE_FUNCTION,OverheatedSystem(&actMeasurement));
+	TEST_ASSERT_EQUAL(STATE_OFF,actMeasurement.stateSystem);
+}
 
-	if(OverheatedSystem(&actMeasurement))
-	{
-		TEST_ASSERT_EQUAL(STATE_OFF,actMeasurement.stateSystem);        
-	}
+// Sistema de control mide la temperatura en el acumulador y continua en servicio el SMCBAE sino se supera los 60ºC.
+// La prueba se realizará con una temperatura de 59.
+// El sensor de temperatura genera dato valido entre -10 a 80 C.
+void test_NormalTempAccum (void)
+{
+	actMeasurement.stateSystem=STATE_OFF;
+	actMeasurement.stateSystem=STATE_ON;	//Recordar que el sistema debe estar encendido para las pruebas.
+	getADC_value_ExpectAndReturn(59);
+	actMeasurement.actualTemperature= (float)Read_Value();
+	TEST_ASSERT_EQUAL(OFF_FUNCTION,OverheatedSystem(&actMeasurement));
+	TEST_ASSERT_EQUAL(STATE_ON,actMeasurement.stateSystem);
 }
 
 // Sistema de control mide la humedad en el acumulador y saca de servicio el SMCBAE cuando sea inferior al 90ºC.
+// La prueba se realizará con una humedad de 89%.
 // El sensor de humedad genera dato valido entre 0% a 100%.
 void test_MinHumAccum (void)
 {
-	UploadTestCase (TEST_CASE_X);
+	getADC_value_ExpectAndReturn(89);
+	actMeasurement.actualHumidity= (float)Read_Value();
+	TEST_ASSERT_EQUAL(ACTIVE_FUNCTION,Dry_System(&actMeasurement));
+	TEST_ASSERT_EQUAL(STATE_OFF,actMeasurement.stateSystem); 
+}
 
-	if(Dry_System(&actMeasurement))
-	{
-		TEST_ASSERT_EQUAL(STATE_OFF,actMeasurement.stateSystem);         
-	}
+// Sistema de control mide la humedad en el acumulador y continua en servicio el SMCBAE cuando sea superior o igual a 90%.
+// La prueba se realizará con una humedad de 91%.
+// El sensor de humedad genera dato valido entre 0% a 100%.
+void test_NormalHumAccum (void)
+{
+	actMeasurement.stateSystem=STATE_OFF;
+	actMeasurement.stateSystem=STATE_ON;	//Recordar que el sistema debe estar encendido para las pruebas.
+	getADC_value_ExpectAndReturn(91);
+	actMeasurement.actualHumidity= (float)Read_Value();
+	TEST_ASSERT_EQUAL(OFF_FUNCTION,Dry_System(&actMeasurement));
+	TEST_ASSERT_EQUAL(STATE_ON,actMeasurement.stateSystem); 
 }
 
 // Sistema de control mide la tensión en el acumulador y saca de servicio el SMCBAE cuando sea superior a 14 V.
+// La prueba se realizará con una tensión de 15V.
 // Se medirá entre un rango de 0 V a 15 V.
 void test_MaxVoltAccum (void)
 {
-	UploadTestCase (TEST_CASE_X);
+	actMeasurement.stateSystem=STATE_ON;	//Recordar que el sistema debe estar encendido para las pruebas.
+	getADC_value_ExpectAndReturn(15);
+	actMeasurement.actualVoltage= (float)Read_Value();
+	TEST_ASSERT_EQUAL(ACTIVE_FUNCTION,Overvoltage_System(&actMeasurement));
+	TEST_ASSERT_EQUAL(STATE_OFF,actMeasurement.stateSystem);        
 
-	if(Overvoltage_System(&actMeasurement))
-	{
-		TEST_ASSERT_EQUAL(STATE_OFF,actMeasurement.stateSystem);        
-	}
+}
+
+// Sistema de control mide la tensión en el acumulador y continua en servicio el SMCBAE cuando sea menor o igual a 14 V.
+// La prueba se realizará con una tensión de 13,9V.
+// Se medirá entre un rango de 0 V a 15 V.
+void test_NormalVoltAccum (void)
+{
+	actMeasurement.stateSystem=STATE_OFF;
+	actMeasurement.stateSystem=STATE_ON;	//Recordar que el sistema debe estar encendido para las pruebas.
+	getADC_value_ExpectAndReturn(13.9);
+	actMeasurement.actualVoltage= (float)Read_Value();
+	TEST_ASSERT_EQUAL(OFF_FUNCTION,Overvoltage_System(&actMeasurement));
+	TEST_ASSERT_EQUAL(STATE_ON,actMeasurement.stateSystem);        
+
 }
 
 // Sistema de control mide la corriente eléctrica en el acumulador y saca de servicio el SMCBAE cuando sea superior a 100 A.
+// La prueba se realizará con una corriente eléctrica de 101V.
 // Se medirá entre un rango de 0 A a 120 A.
 void test_MaxCorrAccum (void)
 {
-	UploadTestCase (TEST_CASE_X);
+	actMeasurement.stateSystem=STATE_ON;	//Recordar que el sistema debe estar encendido para las pruebas.
+	getADC_value_ExpectAndReturn(101);
+	actMeasurement.actualCurrent= (float)Read_Value();
+	TEST_ASSERT_EQUAL(ACTIVE_FUNCTION,Overcurrent_System(&actMeasurement));
+	TEST_ASSERT_EQUAL(STATE_OFF,actMeasurement.stateSystem); 
+}
 
-	if(Overcurrent_System(&actMeasurement))
-	{
-		TEST_ASSERT_EQUAL(STATE_OFF,actMeasurement.stateSystem);         
-	}
+
+// Sistema de control mide la corriente eléctrica en el acumulador y continua en servicio el SMCBAE cuando sea inferior o igual a 100 A.
+// La prueba se realizará con una corriente eléctrica de 101V.
+// Se medirá entre un rango de 0 A a 120 A.
+void test_NormalCorrAccum (void)
+{
+	actMeasurement.stateSystem=STATE_OFF;
+	actMeasurement.stateSystem=STATE_ON;	//Recordar que el sistema debe estar encendido para las pruebas.
+	getADC_value_ExpectAndReturn(99);
+	actMeasurement.actualCurrent= (float)Read_Value();
+	TEST_ASSERT_EQUAL(OFF_FUNCTION,Overcurrent_System(&actMeasurement));
+	TEST_ASSERT_EQUAL(STATE_ON,actMeasurement.stateSystem); 
 }

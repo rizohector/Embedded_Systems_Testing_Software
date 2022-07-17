@@ -4,7 +4,6 @@
 //Inclusiones de archivos y librerías
 #include <stdint.h>
 #include <stdbool.h>
-//#include "errores.h"
 
 // Definiciones y macros
 
@@ -15,6 +14,8 @@
 #define STATE_ON            1  // SISTEMA ENCENDIDO
 #define STATE_OFF           0  // SISTEMA APAGADO
 #define INITIALIZE          0  // INICIALIZA VARIABLES
+#define ACTIVE_FUNCTION     1  // LA FUNCIÓN SE ACTIVÓ
+#define OFF_FUNCTION        0  // LA FUNCIÓN NO ESTA ACTIVA
 
 
 // Tipos de datos y de funciones
@@ -39,12 +40,20 @@ typedef struct
  */
 void SystemInit (actualMeasurement_t *actMeasurement);
 
+
+/**
+ * @brief LEER EL CONVERSOR AD DEL MICROCONTROLADOR UTILIZADO.
+ * 
+ * @return uint16_t REGRESA EL VALOR CRUDO DE LA CONVERSIÓN.
+ */
+uint16_t Read_Value(void);
+
 /**
  * @brief APAGA EL SISTEMA SI SE SOBRECALIENTA EL ACUMULADOR.
  * 
  * @param actMeasurement DIRECCION DE LOS PUERTOS GPIO/ADC.
- * @return true 
- * @return false 
+ * @return true EL ACUMULADOR SE SOBRECALENTO.
+ * @return false EL ACUMULADOR NO SE SOBRECALENTO.
  */
 bool OverheatedSystem(actualMeasurement_t * actMeasurement);
 
@@ -52,8 +61,8 @@ bool OverheatedSystem(actualMeasurement_t * actMeasurement);
  * @brief APAGA EL SISTEMA SI LA HUMEDAD ES ESCASA EN LOS VASOS DEL ACUMULADOR.
  * 
  * @param actMeasurement DIRECCION DE LOS PUERTOS GPIO/ADC.
- * @return true 
- * @return false 
+ * @return true EL ACUMULADOR POSEE ESCASA HUMEDAD.
+ * @return false EL ACUMULADOR ESTÁ EN EL RANGO DESEADO DE HUMEDAD.
  */
 bool Dry_System(actualMeasurement_t *actMeasurement);
 
@@ -61,8 +70,8 @@ bool Dry_System(actualMeasurement_t *actMeasurement);
  * @brief APAGA EL SISTEMA SI EXISTE UNA SOBRETENSION EN LA CARGA DEL ACUMULADOR
  * 
  * @param actMeasurement DIRECCION DE LOS PUERTOS GPIO/ADC.
- * @return true 
- * @return false 
+ * @return true EL ACUMULADOR ESTA EN SOBRETENSIÓN.
+ * @return false EL ACUMULADOR ESTA EN EL RANGO DESEADO DE TENSIÓN.
  */
 bool Overvoltage_System(actualMeasurement_t *actMeasurement);
 
@@ -70,8 +79,8 @@ bool Overvoltage_System(actualMeasurement_t *actMeasurement);
  * @brief APAGA EL ACUMULADOR SI EXISTE UNA SOBRECORRIENTE EN LA CARGA DEL ACUMULADOR
  * 
  * @param actMeasurement 
- * @return true 
- * @return false 
+ * @return true EL ACUMULADOR ESTA EN SOBRECORRIENNTE.
+ * @return false EL ACUMULADOR ESTA EN EL RANGO DESEADO DE CORRIENTE.
  */
 bool Overcurrent_System(actualMeasurement_t *actMeasurement);
 
